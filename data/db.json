@@ -1,0 +1,167 @@
+{
+  "adminPin": "1234",
+  "currentMatch": {
+    "id": "49becf9c-b22e-46e8-b01b-181469985fde",
+    "weekTitle": "Haftalık Halısaha Maçı",
+    "matchDate": "2026-10-19",
+    "matchTime": "22:30 - 23:30",
+    "venue": "Muntaş Halısaha",
+    "code": "SAHA-9A4Q",
+    "maxPlayers": 14,
+    "createdAt": "2026-10-13T06:02:35.238Z",
+    "players": [
+      {
+        "id": "7bcb8f2e-b17c-4ec0-b932-01f3b750dfbd",
+        "name": "Ahmet Yılmaz",
+        "positions": [
+          "GK"
+        ],
+        "position": "GK",
+        "subPosition": "Merkez",
+        "positionLabel": "Kaleci",
+        "joinedAt": "2026-10-13T08:06:12.617Z"
+      },
+      {
+        "id": "2e9a41b9-3e0c-4cd7-95ec-4c9e0f68ec33",
+        "name": "Mert Günok",
+        "positions": [
+          "GK"
+        ],
+        "position": "GK",
+        "subPosition": "Merkez",
+        "positionLabel": "Kaleci",
+        "joinedAt": "2026-10-13T08:06:12.617Z"
+      },
+      {
+        "id": "db2389ff-5bea-46c8-83c1-1d81ddea4de3",
+        "name": "Abdülkerim B.",
+        "positions": [
+          "DEF"
+        ],
+        "position": "DEF",
+        "subPosition": "Merkez",
+        "positionLabel": "Defans",
+        "joinedAt": "2026-10-13T08:06:12.617Z"
+      },
+      {
+        "id": "8e05ec34-149a-4001-bc3a-baefaf46e46a",
+        "name": "Burak Kaya",
+        "positions": [
+          "DEF"
+        ],
+        "position": "DEF",
+        "subPosition": "Merkez",
+        "positionLabel": "Defans",
+        "joinedAt": "2026-10-13T08:06:12.617Z"
+      },
+      {
+        "id": "b7df80e1-83bc-483b-8666-d46e68bc1851",
+        "name": "Emre Demir",
+        "positions": [
+          "DEF",
+          "MID"
+        ],
+        "position": "DEF",
+        "subPosition": "Sol",
+        "positionLabel": "Defans • Orta Saha",
+        "joinedAt": "2026-10-13T08:06:12.617Z"
+      },
+      {
+        "id": "02b7d71e-a141-4ee7-86f0-84d8b76d2640",
+        "name": "Ferdi Kadıoğlu",
+        "positions": [
+          "DEF",
+          "MID"
+        ],
+        "position": "DEF",
+        "subPosition": "Sol",
+        "positionLabel": "Defans • Orta Saha",
+        "joinedAt": "2026-10-13T08:06:12.617Z"
+      },
+      {
+        "id": "5fb255a0-0cdb-427e-90ee-341e7e465164",
+        "name": "Kaan Ayhan",
+        "positions": [
+          "DEF",
+          "MID"
+        ],
+        "position": "DEF",
+        "subPosition": "Sağ",
+        "positionLabel": "Defans • Orta Saha",
+        "joinedAt": "2026-10-13T08:06:12.617Z"
+      },
+      {
+        "id": "71fc2705-a1a3-4453-86f1-6170cb0c947e",
+        "name": "Hakan Çalhanoğlu",
+        "positions": [
+          "MID"
+        ],
+        "position": "MID",
+        "subPosition": "Merkez",
+        "positionLabel": "Orta Saha",
+        "joinedAt": "2026-10-13T08:06:12.617Z"
+      },
+      {
+        "id": "5633f6e2-67f8-45e2-abce-af5906353394",
+        "name": "Orkun Kökçü",
+        "positions": [
+          "MID"
+        ],
+        "position": "MID",
+        "subPosition": "Merkez",
+        "positionLabel": "Orta Saha",
+        "joinedAt": "2026-10-13T08:06:12.617Z"
+      },
+      {
+        "id": "0917464e-935b-4c88-a29b-6798861a1182",
+        "name": "Arda Güler",
+        "positions": [
+          "MID",
+          "FWD"
+        ],
+        "position": "MID",
+        "subPosition": "Sağ",
+        "positionLabel": "Orta Saha • Forvet",
+        "joinedAt": "2026-10-13T08:06:12.617Z"
+      },
+      {
+        "id": "e2ad5a98-e5c0-4973-ba08-de3493c4378a",
+        "name": "İrfan Can",
+        "positions": [
+          "MID",
+          "FWD"
+        ],
+        "position": "MID",
+        "subPosition": "Sol",
+        "positionLabel": "Orta Saha • Forvet",
+        "joinedAt": "2026-10-13T08:06:12.617Z"
+      },
+      {
+        "id": "d6be2bea-fecb-43e2-9f42-2986d674f2f8",
+        "name": "Barış Alper",
+        "positions": [
+          "DEF",
+          "MID",
+          "FWD"
+        ],
+        "position": "DEF",
+        "subPosition": "Sağ",
+        "positionLabel": "Defans • Orta Saha • Forvet (Joker)",
+        "joinedAt": "2026-10-13T08:06:12.617Z"
+      },
+      {
+        "id": "02ee3aa7-9cb2-4e28-b4e2-2249ed9f33ed",
+        "name": "Cenk Tosun",
+        "positions": [
+          "FWD"
+        ],
+        "position": "FWD",
+        "subPosition": "Merkez",
+        "positionLabel": "Forvet",
+        "joinedAt": "2026-10-13T08:06:12.617Z"
+      }
+    ],
+    "teams": null
+  },
+  "history": []
+}

@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Halısaha Kadro & Saha Diziliş Sistemi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <!-- Background Stadium Glows -->
+  <div class="bg-glow bg-glow-red"></div>
+  <div class="bg-glow bg-glow-green"></div>
+
+  <!-- Top Navigation Bar -->
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <div class="brand">
+        <div class="brand-logo" aria-hidden="true">⚽</div>
+        <div>
+          <h1 class="brand-title">HALISAHA<span>KADRO</span></h1>
+          <p class="brand-subtitle">Haftalık Davet & Otomatik 7v7 Saha Diziliş Sistemi</p>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <div id="liveConnectionBadge" class="status-pill status-online" title="Canlı bağlantı aktif">
+          <span class="pulse-dot"></span>
+          <span id="liveStatusText">Canlı</span>
+        </div>
+
+        <div id="activeCodeBadge" class="code-pill hidden" title="Aktif Hafta Kodu">
+          <span class="code-pill-label">KOD:</span>
+          <strong id="headerCodeText">----</strong>
+        </div>
+
+        <button id="openAdminBtn" class="btn btn-outline-sm" type="button">
+          <span>⚙️ Organizatör Paneli</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container main-content">
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+    <!-- ========================================== -->
+    <!-- 1. ACTIVATION CODE GATE SCREEN             -->
+    <!-- ========================================== -->
+    <section id="codeGateSection" class="gate-section">
+      <div class="gate-card">
+        <div class="gate-icon-wrap">
+          <span class="gate-icon">🏟️</span>
+        </div>
+        <div class="gate-badge">HAFTALIK MAÇ GİRİŞİ</div>
+        <h2 id="gateMatchTitle" class="gate-title">Haftalık Halısaha Maçı</h2>
+        <p class="gate-desc">
+          Bu haftanın kadrosuna adını yazdırmak ve mevki seçmek için WhatsApp grubunda paylaşılan
+          <strong>Haftalık Aktivasyon Kodunu</strong> girin.
+        </p>
+
+        <div class="gate-match-meta">
+          <div class="meta-chip">
+            <span>📅</span>
+            <span id="gateMatchDate">--</span>
+          </div>
+          <div class="meta-chip">
+            <span>⏰</span>
+            <span id="gateMatchTime">--:--</span>
+          </div>
+          <div class="meta-chip">
+            <span>📍</span>
+            <span id="gateMatchVenue">--</span>
+          </div>
+          <div class="meta-chip meta-chip-highlight">
+            <span>👥</span>
+            <span>Kadro: <strong id="gatePlayerCount">0 / 14</strong></span>
+          </div>
+        </div>
+
+        <form id="codeGateForm" class="gate-form">
+          <div class="code-input-group">
+            <input
+              type="text"
+              id="activationCodeInput"
+              class="code-input"
+              placeholder="Örn: SAHA-4829"
+              autocomplete="off"
+              maxlength="20"
+              required
+            />
+            <button type="submit" class="btn btn-primary btn-lg">
+              Kadroya Giriş Yap →
+            </button>
+          </div>
+          <p id="codeGateError" class="form-error hidden"></p>
+        </form>
+
+        <div class="gate-organizer-hint">
+          <span>Organizatör müsünüz?</span>
+          <button type="button" id="gateOpenAdminBtn" class="link-btn">
+            Organizatör Panelini Aç (Davet Linki & Kod Al)
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 2. MAIN MATCH ROOM (UNLOCKED WITH CODE)    -->
+    <!-- ========================================== -->
+    <div id="matchRoomSection" class="match-room hidden">
+
+      <!-- Match Header Banner & WhatsApp Invite Bar -->
+      <section class="match-banner">
+        <div class="match-banner-left">
+          <div class="week-tag">
+            <span class="week-tag-dot"></span>
+            <span>AKTİF HAFTA MAÇI</span>
+          </div>
+          <h2 id="roomMatchTitle" class="room-title">Haftalık Halısaha Maçı</h2>
+          <div class="room-meta-list">
+            <span class="room-meta-item">📅 <strong id="roomMatchDate">--</strong></span>
+            <span class="room-meta-item">⏰ <strong id="roomMatchTime">--</strong></span>
+            <span class="room-meta-item">📍 <strong id="roomMatchVenue">--</strong></span>
+          </div>
+        </div>
+
+        <div class="match-banner-right">
+          <div class="invite-box">
+            <div class="invite-box-header">
+              <span class="invite-label">🔑 Haftalık Aktivasyon Kodu & WhatsApp Daveti</span>
+              <span id="inviteCodeDisplay" class="invite-code-badge">SAHA-0000</span>
+            </div>
+            <div class="invite-actions">
+              <button type="button" id="copyInviteLinkBtn" class="btn btn-whatsapp-outline">
+                📋 Davet Linkini Kopyala
+              </button>
+              <button type="button" id="shareWhatsappInviteBtn" class="btn btn-whatsapp">
+                💬 WhatsApp Grubuna Gönder
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Progress Bar Card (X / 14 Players) -->
+      <section class="progress-section">
+        <div class="progress-header">
+          <div class="progress-title-group">
+            <h3 id="progressStatusTitle" class="progress-title">Kadro Toplanıyor...</h3>
+            <p id="progressStatusSubtitle" class="progress-subtitle">
+              14 kişi tamamlandığında sistem mevkilere göre dengeli ve rastgele olarak <strong>A Takımı (Kırmızı)</strong> ve <strong>B Takımı (Yeşil)</strong> kadrolarını kurup sahaya dizecek.
+            </p>
+          </div>
+          <div class="progress-counter-badge">
+            <span id="currentCountNum" class="counter-current">0</span>
+            <span class="counter-sep">/</span>
+            <span class="counter-max">14</span>
+            <span class="counter-unit">OYUNCU</span>
+          </div>
+        </div>
+
+        <div class="progress-bar-track">
+          <div id="progressBarFill" class="progress-bar-fill" style="width: 0%"></div>
+        </div>
+
+        <div class="position-summary-pills">
+          <div class="pos-pill" data-pos="GK">
+            <span>🧤 Kaleci:</span>
+            <strong id="countGK">0</strong>
+          </div>
+          <div class="pos-pill" data-pos="DEF">
+            <span>🛡️ Defans:</span>
+            <strong id="countDEF">0</strong>
+          </div>
+          <div class="pos-pill" data-pos="MID">
+            <span>⚙️ Orta Saha:</span>
+            <strong id="countMID">0</strong>
+          </div>
+          <div class="pos-pill" data-pos="FWD">
+            <span>⚡ Forvet:</span>
+            <strong id="countFWD">0</strong>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================================================== -->
+      <!-- 3. TACTICAL PITCH & TEAMS SECTION (WHEN 14 COMPLETED)-->
+      <!-- ==================================================== -->
+      <section id="teamsTacticalSection" class="tactical-section hidden">
+        <div class="tactical-header">
+          <div class="tactical-header-info">
+            <div class="drawn-badge">🎉 14 KİŞİ TAMAMLANDI • KADROLAR KURULDU</div>
+            <h2 class="tactical-title">A Takımı (Kırmızı) vs B Takımı (Yeşil) Saha Dizilişi</h2>
+            <p class="tactical-subtitle">
+              Oyuncular seçtikleri mevkilere göre dengeli ve rastgele dağıt져 sahadaki bölgelerine yerleştirildi.
+            </p>
+          </div>
+
+          <div class="tactical-controls">
+            <div class="view-toggle-group" role="group" aria-label="Saha Görünüm Modu">
+              <button type="button" id="viewModeFullBtn" class="view-toggle-btn active">
+                🏟️ Tam Saha (Karşılıklı)
+              </button>
+              <button type="button" id="viewModeSplitBtn" class="view-toggle-btn">
+                📋 Yarı Saha (Yan Yana)
+              </button>
+            </div>
+
+            <button type="button" id="copySquadsWhatsappBtn" class="btn btn-whatsapp">
+              📲 Kadroları WhatsApp İçin Kopyala
+            </button>
+          </div>
+        </div>
+
+        <!-- Admin Quick Bar inside Tactical View (visible when admin unlocked or clickable) -->
+        <div class="tactical-helper-bar">
+          <div class="SwapHint">
+            💡 <strong>İpucu:</strong> İki takımdan birer oyuncunun formasına tıklayarak aralarında takas (yer değişikliği) yapabilir veya
+            <button type="button" id="quickReshuffleBtn" class="inline-action-btn">🎲 Kadroları Yeniden Dağıt</button>
+            diyebilirsiniz.
+          </div>
+          <div id="swapSelectionBanner" class="swap-banner hidden">
+            <span id="swapSelectionText">Takas için diğer takımdan bir oyuncu seçin...</span>
+            <button type="button" id="cancelSwapBtn" class="btn-xs-cancel">İptal</button>
+          </div>
+        </div>
+
+        <!-- VIEW 1: FULL PITCH (TEAM A RED VS TEAM B GREEN) -->
+        <div id="fullPitchContainer" class="full-pitch-wrapper">
+          <!-- Team Headers above pitch -->
+          <div class="pitch-matchup-bar">
+            <div class="matchup-team matchup-team-a">
+              <div class="mini-jersey-badge jersey-red">A</div>
+              <div>
+                <h4>A TAKIMI (KIRMIZI FORMA)</h4>
+                <span>Sol Yarı Saha • 7 Oyuncu</span>
+              </div>
+            </div>
+            <div class="matchup-vs">VS</div>
+            <div class="matchup-team matchup-team-b">
+              <div>
+                <h4>B TAKIMI (YEŞİL FORMA)</h4>
+                <span>Sağ Yarı Saha • 7 Oyuncu</span>
+              </div>
+              <div class="mini-jersey-badge jersey-green">B</div>
+            </div>
+          </div>
+
+          <!-- The Visual Football Pitch -->
+          <div id="mainFootballPitch" class="football-pitch">
+            <!-- Grass stripes & markings -->
+            <div class="pitch-grass">
+              <div class="pitch-half-tint pitch-tint-red"></div>
+              <div class="pitch-half-tint pitch-tint-green"></div>
+              <!-- Outer boundary -->
+              <div class="pitch-line-outer">
+                <!-- Halfway line & Center circle -->
+                <div class="pitch-halfway-line"></div>
+                <div class="pitch-center-circle"></div>
+                <div class="pitch-center-spot"></div>
+
+                <!-- Left Penalty Box & Goal (Team A - Red) -->
+                <div class="pitch-penalty-box pitch-box-left">
+                  <div class="pitch-goal-box pitch-goal-box-left"></div>
+                  <div class="pitch-penalty-spot pitch-spot-left"></div>
+                  <div class="pitch-penalty-arc pitch-arc-left"></div>
+                </div>
+                <div class="pitch-goal-net pitch-goal-left"></div>
+
+                <!-- Right Penalty Box & Goal (Team B - Green) -->
+                <div class="pitch-penalty-box pitch-box-right">
+                  <div class="pitch-goal-box pitch-goal-box-right"></div>
+                  <div class="pitch-penalty-spot pitch-spot-right"></div>
+                  <div class="pitch-penalty-arc pitch-arc-right"></div>
+                </div>
+                <div class="pitch-goal-net pitch-goal-right"></div>
+
+                <!-- Corner Arcs -->
+                <div class="pitch-corner corner-tl"></div>
+                <div class="pitch-corner corner-tr"></div>
+                <div class="pitch-corner corner-bl"></div>
+                <div class="pitch-corner corner-br"></div>
+
+                <!-- Watermark labels -->
+                <div class="pitch-watermark watermark-left">A TAKIMI</div>
+                <div class="pitch-watermark watermark-right">B TAKIMI</div>
+              </div>
+
+              <!-- Dynamic Player Tokens Layer -->
+              <div id="fullPitchPlayersLayer" class="pitch-players-layer"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VIEW 2: SPLIT TACTICAL BOARDS (SIDE BY SIDE HALF PITCHES) -->
+        <div id="splitPitchContainer" class="split-pitch-grid hidden">
+          <!-- Team A Tactical Pitch -->
+          <div class="tactical-board-card board-red">
+            <div class="board-header header-red">
+              <span class="board-dot dot-red"></span>
+              <h3>A TAKIMI (KIRMIZI FORMA) SAHA DİZİLİŞİ</h3>
+            </div>
+            <div class="single-tactical-pitch">
+              <div class="single-pitch-lines">
+                <div class="single-half-circle"></div>
+                <div class="single-penalty-box">
+                  <div class="single-goal-box"></div>
+                </div>
+              </div>
+              <div id="singlePitchTeamALayer" class="single-pitch-players"></div>
+            </div>
+          </div>
+
+          <!-- Team B Tactical Pitch -->
+          <div class="tactical-board-card board-green">
+            <div class="board-header header-green">
+              <span class="board-dot dot-green"></span>
+              <h3>B TAKIMI (YEŞİL FORMA) SAHA DİZİLİŞİ</h3>
+            </div>
+            <div class="single-tactical-pitch">
+              <div class="single-pitch-lines">
+                <div class="single-half-circle"></div>
+                <div class="single-penalty-box">
+                  <div class="single-goal-box"></div>
+                </div>
+              </div>
+              <div id="singlePitchTeamBLayer" class="single-pitch-players"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SIDE-BY-SIDE SQUAD ROSTER CARDS (RED VS GREEN) -->
+        <div class="squad-cards-grid">
+          <!-- Team A Card (Red) -->
+          <div class="squad-card squad-card-red">
+            <div class="squad-card-header">
+              <div class="squad-header-left">
+                <div class="squad-kit-preview" id="teamAKitPreview"></div>
+                <div>
+                  <h3>A TAKIMI</h3>
+                  <span class="kit-badge kit-badge-red">🔴 KIRMIZI FORMA</span>
+                </div>
+              </div>
+              <span class="squad-count-badge">7 Oyuncu</span>
+            </div>
+            <ul id="teamARosterList" class="squad-roster-list"></ul>
+          </div>
+
+          <!-- Team B Card (Green) -->
+          <div class="squad-card squad-card-green">
+            <div class="squad-card-header">
+              <div class="squad-header-left">
+                <div class="squad-kit-preview" id="teamBKitPreview"></div>
+                <div>
+                  <h3>B TAKIMI</h3>
+                  <span class="kit-badge kit-badge-green">🟢 YEŞİL FORMA</span>
+                </div>
+              </div>
+              <span class="squad-count-badge">7 Oyuncu</span>
+            </div>
+            <ul id="teamBRosterList" class="squad-roster-list"></ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================================================== -->
+      <!-- 4. REGISTRATION FORM & REGISTERED PLAYERS LIST       -->
+      <!-- ==================================================== -->
+      <section class="registration-grid">
+        <!-- Left Column: Join Form -->
+        <div class="join-card">
+          <div class="card-header">
+            <span class="card-step-badge">ADIM 1</span>
+            <h3>Kadroya Adını Yazdır & Mevki Seç</h3>
+            <p>Aşağıdan adınızı girin ve sahada oynamak istediğiniz mevkiyi seçin.</p>
+          </div>
+
+          <!-- Shown when < 14 players -->
+          <form id="playerJoinForm" class="join-form">
+            <div class="form-group">
+              <label for="playerNameInput">Adınız Soyadınız (veya Lakap)</label>
+              <input
+                type="text"
+                id="playerNameInput"
+                class="text-input"
+                placeholder="Örn: Ahmet Yılmaz"
+                maxlength="28"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <div class="form-label-with-hint">
+                <label>Oynayabileceğiniz Mevkiler</label>
+                <span class="pos-rule-hint">💡 Kaleci hariç birden fazla mevki seçebilirsiniz</span>
+              </div>
+              <div class="position-selector-grid">
+                <label class="pos-select-card" id="posCardGK">
+                  <input type="checkbox" name="position" value="GK" />
+                  <div class="pos-card-inner">
+                    <span class="pos-icon">🧤</span>
+                    <span class="pos-name">Kaleci</span>
+                    <span class="pos-desc">Tekil Seçim</span>
+                    <span class="pos-check-badge">✓</span>
+                  </div>
+                </label>
+
+                <label class="pos-select-card" id="posCardDEF">
+                  <input type="checkbox" name="position" value="DEF" />
+                  <div class="pos-card-inner">
+                    <span class="pos-icon">🛡️</span>
+                    <span class="pos-name">Defans</span>
+                    <span class="pos-desc">Stoper / Bek</span>
+                    <span class="pos-check-badge">✓</span>
+                  </div>
+                </label>
+
+                <label class="pos-select-card" id="posCardMID">
+                  <input type="checkbox" name="position" value="MID" checked />
+                  <div class="pos-card-inner">
+                    <span class="pos-icon">⚙️</span>
+                    <span class="pos-name">Orta Saha</span>
+                    <span class="pos-desc">Oyun Kurucu / Kanat</span>
+                    <span class="pos-check-badge">✓</span>
+                  </div>
+                </label>
+
+                <label class="pos-select-card" id="posCardFWD">
+                  <input type="checkbox" name="position" value="FWD" />
+                  <div class="pos-card-inner">
+                    <span class="pos-icon">⚡</span>
+                    <span class="pos-name">Forvet</span>
+                    <span class="pos-desc">Golcü / İleri Uç</span>
+                    <span class="pos-check-badge">✓</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div id="subPositionGroup" class="form-group">
+              <label>Saha Bölgesi / Kanat Tercihi</label>
+              <div class="subpos-selector">
+                <label class="subpos-chip">
+                  <input type="radio" name="subPosition" value="Sol" />
+                  <span>⬅️ Sol Kanat / Sol</span>
+                </label>
+                <label class="subpos-chip">
+                  <input type="radio" name="subPosition" value="Merkez" checked />
+                  <span>🎯 Merkez / Göbek</span>
+                </label>
+                <label class="subpos-chip">
+                  <input type="radio" name="subPosition" value="Sağ" />
+                  <span>➡️ Sağ Kanat / Sağ</span>
+                </label>
+              </div>
+            </div>
+
+            <p id="joinFormError" class="form-error hidden"></p>
+
+            <button type="submit" id="joinSubmitBtn" class="btn btn-primary btn-block btn-lg">
+              ⚽ Kadroya Katıl
+            </button>
+          </form>
+
+          <!-- Shown when 14 players are full -->
+          <div id="registrationFullNotice" class="registration-full-box hidden">
+            <div class="full-icon">✅</div>
+            <h4>14 Kişilik Maç Kadrosu Doldu!</h4>
+            <p>
+              Bu haftanın 14 kişilik kadrosu tamamlandı ve <strong>A Takımı (Kırmızı)</strong> ile <strong>B Takımı (Yeşil)</strong> yukarıdaki sahaya yerleştirildi.
+            </p>
+            <p class="full-subtext">
+              İptal eden bir oyuncu olursa Organizatör Panelinden listeden çıkarılabilir veya kadrolar yeniden dağıtılabilir.
+            </p>
+          </div>
+        </div>
+
+        <!-- Right Column: Joined Players List (1..14) -->
+        <div class="players-list-card">
+          <div class="card-header players-list-header">
+            <div>
+              <span class="card-step-badge">CANLI LİSTE</span>
+              <h3>Kadroya Yazılan Oyuncular (<span id="listCountText">0/14</span>)</h3>
+            </div>
+            <button type="button" id="demoFillQuickBtn" class="btn btn-outline-xs" title="Test için hızlıca 14 kişiye tamamla">
+              ⚡ Hızlı Test: 14 Kişiye Tamamla
+            </button>
+          </div>
+
+          <div id="playersSlotList" class="players-slot-list">
+            <!-- Dynamically populated with 14 slots -->
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- ========================================== -->
+  <!-- 5. ORGANIZER / ADMIN MODAL                 -->
+  <!-- ========================================== -->
+  <div id="adminModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="adminModalTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <span class="modal-badge">ORGANİZATÖR PANELİ</span>
+          <h3 id="adminModalTitle">Haftalık Kod & Kadro Yönetimi</h3>
+        </div>
+        <button type="button" id="closeAdminModalBtn" class="modal-close-btn" aria-label="Kapat">✕</button>
+      </div>
+
+      <!-- Admin PIN Login Step -->
+      <div id="adminLoginView" class="modal-body">
+        <p class="modal-desc">
+          Yeni hafta aktivasyon kodu oluşturmak, WhatsApp davet linkini almak veya oyuncuları yönetmek için Organizatör PIN kodunu girin.
+        </p>
+        <div class="pin-hint-box">
+          🔑 <strong>Varsayılan Organizatör PIN:</strong> <code>1234</code>
+        </div>
+        <form id="adminLoginForm" class="admin-login-form">
+          <input
+            type="password"
+            id="adminPinInput"
+            class="text-input"
+            placeholder="PIN Kodu (1234)"
+            value="1234"
+            required
+          />
+          <button type="submit" class="btn btn-primary">Panele Giriş Yap</button>
+        </form>
+        <p id="adminLoginError" class="form-error hidden"></p>
+      </div>
+
+      <!-- Admin Dashboard Step -->
+      <div id="adminDashboardView" class="modal-body hidden">
+        <!-- Current Week Invite & Code Box -->
+        <div class="admin-section admin-highlight-box">
+          <div class="admin-code-row">
+            <div>
+              <span class="admin-small-label">BU HAFTANIN AKTİVASYON KODU</span>
+              <div id="adminCurrentCode" class="admin-big-code">SAHA-0000</div>
+            </div>
+            <div class="admin-code-actions">
+              <button type="button" id="adminCopyLinkBtn" class="btn btn-whatsapp-outline">
+                🔗 Davet Linkini Kopyala
+              </button>
+              <button type="button" id="adminCopyMessageBtn" class="btn btn-whatsapp">
+                💬 WhatsApp Mesajını Kopyala
+              </button>
+            </div>
+          </div>
+          <div class="admin-link-preview">
+            <input type="text" id="adminInviteUrlInput" class="readonly-url-input" readonly />
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="admin-section">
+          <h4 class="admin-section-title">⚡ Hızlı Kadro İşlemleri</h4>
+          <div class="admin-quick-grid">
+            <button type="button" id="adminFillDemoBtn" class="btn btn-secondary">
+              👥 Rastgele 14 Kişi Doldur (Test)
+            </button>
+            <button type="button" id="adminReshuffleBtn" class="btn btn-secondary">
+              🎲 Kadroları Yeniden Dağıt
+            </button>
+            <button type="button" id="adminClearPlayersBtn" class="btn btn-danger-outline">
+              🗑️ Mevcut Oyuncuları Temizle
+            </button>
+          </div>
+        </div>
+
+        <!-- Start New Week / Generate New Code -->
+        <div class="admin-section">
+          <h4 class="admin-section-title">🔄 Yeni Hafta Başlat & Yeni Aktivasyon Kodu Üret</h4>
+          <p class="admin-section-desc">
+            Yeni hafta başlattığınızda mevcut liste sıfırlanır ve WhatsApp grubuna atabileceğiniz yeni bir aktivasyon kodu ve davet linki üretilir.
+          </p>
+          <form id="adminNewWeekForm" class="admin-form-grid">
+            <div class="form-group">
+              <label>Maç Başlığı</label>
+              <input type="text" id="adminWeekTitle" class="text-input" value="Haftalık Halısaha Maçı" required />
+            </div>
+            <div class="form-group">
+              <label>Halısaha Tesis Adı</label>
+              <input type="text" id="adminVenue" class="text-input" value="Merkez Olimpik Halısaha" required />
+            </div>
+            <div class="form-group">
+              <label>Maç Tarihi</label>
+              <input type="date" id="adminMatchDate" class="text-input" required />
+            </div>
+            <div class="form-group">
+              <label>Maç Saati</label>
+              <input type="text" id="adminMatchTime" class="text-input" value="21:00 - 22:00" required />
+            </div>
+            <div class="form-group form-group-full">
+              <label>Özel Aktivasyon Kodu (Boş bırakırsanız otomatik rastgele üretilir)</label>
+              <input type="text" id="adminCustomCode" class="text-input" placeholder="Örn: CUMA21 veya boş bırakın" maxlength="16" />
+            </div>
+            <div class="form-group-full admin-form-buttons">
+              <button type="button" id="adminUpdateOnlyBtn" class="btn btn-outline-sm">
+                Sadece Bilgileri Güncelle (Listeyi Silme)
+              </button>
+              <button type="submit" class="btn btn-primary">
+                🚀 Yeni Hafta & Yeni Kod Oluştur
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

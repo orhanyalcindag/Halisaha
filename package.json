@@ -1,0 +1,12 @@
+{
+  "name": "halisaha-kadro-sistemi",
+  "version": "1.0.0",
+  "description": "Haftalık Halısaha Aktivasyon Kodlu Kadro ve Saha Diziliş Sistemi",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
