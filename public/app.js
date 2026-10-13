@@ -2,9 +2,9 @@
   // Application State
   let currentMatch = null;
   let validatedCode = '';
-  let adminUsername = localStorage.getItem('halisaha_admin_user') || 'Orhan';
-  let adminPassword = localStorage.getItem('halisaha_admin_pass') || '1905';
-  let isAdminAuthenticated = false;
+  let adminUsername = localStorage.getItem('halisaha_admin_user') || '';
+  let adminPassword = localStorage.getItem('halisaha_admin_pass') || '';
+  let isAdminAuthenticated = localStorage.getItem('halisaha_is_admin') === 'true' && Boolean(adminUsername && adminPassword);
   let selectedForSwap = null; // { id, name, team }
   let pitchViewMode = 'full'; // 'full' | 'split'
 
@@ -72,6 +72,7 @@
   const teamBKitPreview = document.getElementById('teamBKitPreview');
   const copySquadsWhatsappBtn = document.getElementById('copySquadsWhatsappBtn');
   const quickReshuffleBtn = document.getElementById('quickReshuffleBtn');
+  const tacticalHelperBar = document.getElementById('tacticalHelperBar');
   const swapSelectionBanner = document.getElementById('swapSelectionBanner');
   const swapSelectionText = document.getElementById('swapSelectionText');
   const cancelSwapBtn = document.getElementById('cancelSwapBtn');
@@ -80,6 +81,7 @@
   const openAdminBtn = document.getElementById('openAdminBtn');
   const adminModal = document.getElementById('adminModal');
   const closeAdminModalBtn = document.getElementById('closeAdminModalBtn');
+  const adminLogoutBtn = document.getElementById('adminLogoutBtn');
   const adminLoginView = document.getElementById('adminLoginView');
   const adminDashboardView = document.getElementById('adminDashboardView');
   const adminLoginForm = document.getElementById('adminLoginForm');
@@ -93,6 +95,8 @@
   const adminFillDemoBtn = document.getElementById('adminFillDemoBtn');
   const adminReshuffleBtn = document.getElementById('adminReshuffleBtn');
   const adminClearPlayersBtn = document.getElementById('adminClearPlayersBtn');
+  const adminPlayersManageList = document.getElementById('adminPlayersManageList');
+  const adminPlayersCountText = document.getElementById('adminPlayersCountText');
   const adminNewWeekForm = document.getElementById('adminNewWeekForm');
   const adminWeekTitle = document.getElementById('adminWeekTitle');
   const adminVenue = document.getElementById('adminVenue');
@@ -383,14 +387,20 @@
         'Oyuncular mevkilerine göre dengeli olarak <strong>🔴 A Takımı (Kırmızı Forma)</strong> ve <strong>🟢 B Takımı (Yeşil Forma)</strong> şeklinde ikiye ayrıldı.';
       playerJoinForm.classList.add('hidden');
       registrationFullNotice.classList.remove('hidden');
-      demoFillQuickBtn.classList.add('hidden');
+      if (demoFillQuickBtn) demoFillQuickBtn.classList.add('hidden');
     } else {
       progressStatusTitle.textContent = `Kadro Toplanıyor (${remaining} Kişi Kaldı)`;
       progressStatusSubtitle.innerHTML =
         `14 kişi tamamlandığında sistem otomatik olarak rastgele <strong>A Takımı (Kırmızı)</strong> ve <strong>B Takımı (Yeşil)</strong> kadrolarını kurup sahaya yerleştirecek.`;
       playerJoinForm.classList.remove('hidden');
       registrationFullNotice.classList.add('hidden');
-      demoFillQuickBtn.classList.remove('hidden');
+      if (demoFillQuickBtn) {
+        if (isAdminAuthenticated) {
+          demoFillQuickBtn.classList.remove('hidden');
+        } else {
+          demoFillQuickBtn.classList.add('hidden');
+        }
+      }
     }
 
     // Position counts (supporting multi-positions)
@@ -406,15 +416,23 @@
     countMID.textContent = posCounts.MID;
     countFWD.textContent = posCounts.FWD;
 
-    // Render 14 Player Slots
+    // Render 14 Player Slots (Only admin sees ✕ delete button)
     renderPlayerSlots(match.players, max);
 
     // Render Tactical Pitch & Squad Cards if teams are drawn
     if (match.teams && match.teams.teamA && match.teams.teamB) {
       teamsTacticalSection.classList.remove('hidden');
       renderTacticalPitchAndRosters(match.teams);
+      if (tacticalHelperBar) {
+        if (isAdminAuthenticated) {
+          tacticalHelperBar.classList.remove('hidden');
+        } else {
+          tacticalHelperBar.classList.add('hidden');
+        }
+      }
     } else {
       teamsTacticalSection.classList.add('hidden');
+      if (tacticalHelperBar) tacticalHelperBar.classList.add('hidden');
       selectedForSwap = null;
       swapSelectionBanner.classList.add('hidden');
     }
@@ -435,6 +453,9 @@
         const poses = player.positions && player.positions.length > 0 ? player.positions : [player.position || 'MID'];
         const subText = poses.includes('GK') ? 'Kale Koruyucu' : `${player.positionLabel} • ${player.subPosition || 'Merkez'}`;
         const tagsHtml = poses.map(p => `<span class="pos-tag pos-tag-${p}">${p}</span>`).join('');
+        const removeBtnHtml = isAdminAuthenticated
+          ? `<button type="button" class="slot-remove-btn" data-remove-id="${player.id}" title="Oyuncuyu Listeden Çıkar (Organizatör)">✕</button>`
+          : '';
 
         slotEl.innerHTML = `
           <div class="slot-left">
@@ -446,7 +467,7 @@
           </div>
           <div class="slot-right">
             <div class="pos-tags-wrap">${tagsHtml}</div>
-            <button type="button" class="slot-remove-btn" data-remove-id="${player.id}" title="Oyuncuyu Listeden Çıkar">✕</button>
+            ${removeBtnHtml}
           </div>
         `;
       } else {
@@ -468,13 +489,15 @@
       playersSlotList.appendChild(slotEl);
     }
 
-    // Attach remove player handlers
-    playersSlotList.querySelectorAll('[data-remove-id]').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const playerId = btn.getAttribute('data-remove-id');
-        await handleRemovePlayer(playerId);
+    // Attach remove player handlers ONLY if authenticated as admin
+    if (isAdminAuthenticated) {
+      playersSlotList.querySelectorAll('[data-remove-id]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const playerId = btn.getAttribute('data-remove-id');
+          await handleRemovePlayer(playerId);
+        });
       });
-    });
+    }
   }
 
   // ==========================================
@@ -577,6 +600,8 @@
   // INTERACTIVE SWAP BETWEEN TEAM A & TEAM B
   // ==========================================
   async function handlePlayerTokenClick(player) {
+    if (!isAdminAuthenticated) return;
+
     if (!selectedForSwap) {
       selectedForSwap = player;
       swapSelectionBanner.classList.remove('hidden');
@@ -818,6 +843,11 @@
   }
 
   async function handleRemovePlayer(playerId) {
+    if (!isAdminAuthenticated) {
+      showToast('⚠️ Oyuncu silme yetkisi sadece organizatördedir!', true);
+      return;
+    }
+
     try {
       const res = await fetch('/api/admin/remove-player', {
         method: 'POST',
@@ -828,6 +858,8 @@
       if (res.ok && data.ok) {
         renderMatchRoom(data.match);
         showToast('🗑️ Oyuncu listeden çıkarıldı.');
+      } else {
+        showToast(data.message || 'Oyuncu silinemedi.', true);
       }
     } catch {
       showToast('Oyuncu silinemedi.', true);
@@ -839,10 +871,15 @@
   // ==========================================
   function openAdminModal() {
     adminModal.classList.remove('hidden');
-    if (isAdminAuthenticated && currentMatch) {
+    if (isAdminAuthenticated) {
       adminLoginView.classList.add('hidden');
       adminDashboardView.classList.remove('hidden');
-      syncAdminModalFields(currentMatch);
+      if (adminLogoutBtn) adminLogoutBtn.classList.remove('hidden');
+      if (currentMatch) syncAdminModalFields(currentMatch);
+    } else {
+      adminDashboardView.classList.add('hidden');
+      adminLoginView.classList.remove('hidden');
+      if (adminLogoutBtn) adminLogoutBtn.classList.add('hidden');
     }
   }
 
@@ -881,6 +918,7 @@
       isAdminAuthenticated = true;
       localStorage.setItem('halisaha_admin_user', username);
       localStorage.setItem('halisaha_admin_pass', password);
+      localStorage.setItem('halisaha_is_admin', 'true');
 
       // Automatically unlock the match room for the organizer too!
       validatedCode = data.match.code;
@@ -891,13 +929,31 @@
 
       adminLoginView.classList.add('hidden');
       adminDashboardView.classList.remove('hidden');
+      if (adminLogoutBtn) adminLogoutBtn.classList.remove('hidden');
       syncAdminModalFields(data.match);
+      renderMatchRoom(data.match);
       showToast('🛡️ Organizatör paneline giriş yapıldı.');
     } catch {
       adminLoginError.textContent = 'Sunucu bağlantı hatası.';
       adminLoginError.classList.remove('hidden');
     }
   });
+
+  if (adminLogoutBtn) {
+    adminLogoutBtn.addEventListener('click', () => {
+      isAdminAuthenticated = false;
+      adminUsername = '';
+      adminPassword = '';
+      localStorage.removeItem('halisaha_admin_user');
+      localStorage.removeItem('halisaha_admin_pass');
+      localStorage.removeItem('halisaha_is_admin');
+      adminLogoutBtn.classList.add('hidden');
+      adminDashboardView.classList.add('hidden');
+      adminLoginView.classList.remove('hidden');
+      if (currentMatch) renderMatchRoom(currentMatch);
+      showToast('🛡️ Organizatör oturumu kapatıldı.');
+    });
+  }
 
   function syncAdminModalFields(match) {
     if (!match) return;
@@ -907,6 +963,51 @@
     adminVenue.value = match.venue || '';
     adminMatchDate.value = match.matchDate || '';
     adminMatchTime.value = match.matchTime || '';
+
+    // Render registered players management list inside admin panel
+    if (adminPlayersCountText) {
+      adminPlayersCountText.textContent = `${match.players?.length || 0}/${match.maxPlayers || 14}`;
+    }
+
+    if (adminPlayersManageList) {
+      adminPlayersManageList.innerHTML = '';
+      const players = match.players || [];
+      if (players.length === 0) {
+        adminPlayersManageList.innerHTML = '<div class="admin-empty-players-notice">Henüz kadroya yazılan oyuncu bulunmuyor.</div>';
+      } else {
+        players.forEach((p, idx) => {
+          const item = document.createElement('div');
+          item.className = 'admin-player-item';
+          const poses = p.positions && p.positions.length > 0 ? p.positions : [p.position || 'MID'];
+          const tagsHtml = poses.map(tag => `<span class="pos-tag pos-tag-${tag}">${tag}</span>`).join('');
+
+          item.innerHTML = `
+            <div class="admin-player-item-left">
+              <span class="admin-player-item-num">${idx + 1}</span>
+              <div class="admin-player-item-info">
+                <div class="admin-player-item-name" title="${escapeHtml(p.name)}">${escapeHtml(p.name)}</div>
+                <div class="admin-player-item-pos">${escapeHtml(p.positionLabel)} • ${escapeHtml(p.subPosition || 'Merkez')}</div>
+              </div>
+            </div>
+            <div class="admin-player-item-right">
+              <div class="pos-tags-wrap">${tagsHtml}</div>
+              <button type="button" class="admin-player-remove-btn" data-admin-del="${p.id}" title="Oyuncuyu Çıkar">
+                🗑️ Çıkar
+              </button>
+            </div>
+          `;
+
+          const delBtn = item.querySelector('[data-admin-del]');
+          if (delBtn) {
+            delBtn.addEventListener('click', async () => {
+              await handleRemovePlayer(p.id);
+            });
+          }
+
+          adminPlayersManageList.appendChild(item);
+        });
+      }
+    }
   }
 
   adminCopyLinkBtn.addEventListener('click', () => {

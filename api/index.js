@@ -110,10 +110,7 @@ function isAuthorizedAdmin(body, db) {
   const password = String(body.password || body.pin || '').trim();
   const expectedUser = (db.adminUsername || 'Orhan').toLowerCase();
   const expectedPass = String(db.adminPassword || '1905');
-  if (username) {
-    return username.toLowerCase() === expectedUser && password === expectedPass;
-  }
-  return password === expectedPass;
+  return Boolean(username && password && username.toLowerCase() === expectedUser && password === expectedPass);
 }
 
 const POSITION_LABELS = {

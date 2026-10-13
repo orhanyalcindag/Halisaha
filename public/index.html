@@ -216,8 +216,8 @@
           </div>
         </div>
 
-        <!-- Admin Quick Bar inside Tactical View (visible when admin unlocked or clickable) -->
-        <div class="tactical-helper-bar">
+        <!-- Admin Quick Bar inside Tactical View (visible ONLY to authenticated admin) -->
+        <div id="tacticalHelperBar" class="tactical-helper-bar hidden">
           <div class="SwapHint">
             💡 <strong>İpucu:</strong> İki takımdan birer oyuncunun formasına tıklayarak aralarında takas (yer değişikliği) yapabilir veya
             <button type="button" id="quickReshuffleBtn" class="inline-action-btn">🎲 Kadroları Yeniden Dağıt</button>
@@ -509,7 +509,10 @@
           <span class="modal-badge">ORGANİZATÖR PANELİ</span>
           <h3 id="adminModalTitle">Haftalık Kod & Kadro Yönetimi</h3>
         </div>
-        <button type="button" id="closeAdminModalBtn" class="modal-close-btn" aria-label="Kapat">✕</button>
+        <div class="modal-header-actions">
+          <button type="button" id="adminLogoutBtn" class="btn btn-outline-xs btn-logout hidden" title="Organizatör Oturumunu Kapat">🚪 Çıkış Yap</button>
+          <button type="button" id="closeAdminModalBtn" class="modal-close-btn" aria-label="Kapat">✕</button>
+        </div>
       </div>
 
       <!-- Admin Login Step -->
@@ -583,6 +586,17 @@
             <button type="button" id="adminClearPlayersBtn" class="btn btn-danger-outline">
               🗑️ Mevcut Oyuncuları Temizle
             </button>
+          </div>
+        </div>
+
+        <!-- Admin Registered Players Management -->
+        <div class="admin-section">
+          <div class="admin-section-header-flex">
+            <h4 class="admin-section-title">👥 Oyuncu Kadrosu Yönetimi (<span id="adminPlayersCountText">0/14</span>)</h4>
+            <span class="admin-badge-sub">Sadece Yönetici Silebilir</span>
+          </div>
+          <div id="adminPlayersManageList" class="admin-players-manage-list">
+            <!-- Dynamically populated with enrolled players and remove buttons -->
           </div>
         </div>
 
