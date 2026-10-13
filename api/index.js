@@ -21,7 +21,8 @@ function getDefaultMatchDate() {
 
 function createInitialState() {
   return {
-    adminPin: '1234',
+    adminUsername: 'Orhan',
+    adminPassword: '1905',
     currentMatch: {
       id: crypto.randomUUID(),
       weekTitle: 'Haftalık Halısaha Maçı',
@@ -53,7 +54,10 @@ async function loadDB() {
       });
       const data = await res.json();
       if (data && data.result) {
-        return JSON.parse(data.result);
+        const parsed = JSON.parse(data.result);
+        parsed.adminUsername = 'Orhan';
+        parsed.adminPassword = '1905';
+        return parsed;
       }
     } catch (e) {
       console.error('KV okuma hatası:', e);
@@ -66,6 +70,8 @@ async function loadDB() {
     if (fs.existsSync(TMP_FILE)) {
       const raw = fs.readFileSync(TMP_FILE, 'utf8');
       memoryCache = JSON.parse(raw);
+      memoryCache.adminUsername = 'Orhan';
+      memoryCache.adminPassword = '1905';
       return memoryCache;
     }
   } catch (e) {}
@@ -96,6 +102,18 @@ async function saveDB(data) {
   try {
     fs.writeFileSync(TMP_FILE, JSON.stringify(data, null, 2), 'utf8');
   } catch (e) {}
+}
+
+function isAuthorizedAdmin(body, db) {
+  if (!body) return false;
+  const username = String(body.username || '').trim();
+  const password = String(body.password || body.pin || '').trim();
+  const expectedUser = (db.adminUsername || 'Orhan').toLowerCase();
+  const expectedPass = String(db.adminPassword || '1905');
+  if (username) {
+    return username.toLowerCase() === expectedUser && password === expectedPass;
+  }
+  return password === expectedPass;
 }
 
 const POSITION_LABELS = {
@@ -526,8 +544,13 @@ module.exports = async (req, res) => {
   // POST /admin/login
   if (req.method === 'POST' && pathname === '/admin/login') {
     const body = await parseBody(req);
-    if ((body.pin || '').trim() !== db.adminPin) {
-      return sendJSON(res, 401, { ok: false, message: 'Yönetici PIN hatalı! (Varsayılan: 1234)' });
+    const username = String(body.username || '').trim();
+    const password = String(body.password || body.pin || '').trim();
+    const expectedUser = (db.adminUsername || 'Orhan').toLowerCase();
+    const expectedPass = String(db.adminPassword || '1905');
+
+    if (username.toLowerCase() !== expectedUser || password !== expectedPass) {
+      return sendJSON(res, 401, { ok: false, message: 'Kullanıcı adı veya şifre hatalı!' });
     }
     return sendJSON(res, 200, { ok: true, match: sanitizeMatch(db.currentMatch) });
   }
@@ -535,7 +558,7 @@ module.exports = async (req, res) => {
   // POST /admin/fill-demo
   if (req.method === 'POST' && pathname === '/admin/fill-demo') {
     const body = await parseBody(req);
-    if ((body.pin || '').trim() !== db.adminPin) {
+    if (!isAuthorizedAdmin(body, db)) {
       return sendJSON(res, 401, { ok: false, message: 'Yetkisiz işlem.' });
     }
 
@@ -583,7 +606,7 @@ module.exports = async (req, res) => {
   // POST /admin/reshuffle
   if (req.method === 'POST' && pathname === '/admin/reshuffle') {
     const body = await parseBody(req);
-    if ((body.pin || '').trim() !== db.adminPin) {
+    if (!isAuthorizedAdmin(body, db)) {
       return sendJSON(res, 401, { ok: false, message: 'Yetkisiz işlem.' });
     }
     db.currentMatch.teams = distributeTeamsBalanced(db.currentMatch.players);
@@ -594,7 +617,7 @@ module.exports = async (req, res) => {
   // POST /admin/clear-players
   if (req.method === 'POST' && pathname === '/admin/clear-players') {
     const body = await parseBody(req);
-    if ((body.pin || '').trim() !== db.adminPin) {
+    if (!isAuthorizedAdmin(body, db)) {
       return sendJSON(res, 401, { ok: false, message: 'Yetkisiz işlem.' });
     }
     db.currentMatch.players = [];
@@ -606,7 +629,7 @@ module.exports = async (req, res) => {
   // POST /admin/new-week
   if (req.method === 'POST' && pathname === '/admin/new-week') {
     const body = await parseBody(req);
-    if ((body.pin || '').trim() !== db.adminPin) {
+    if (!isAuthorizedAdmin(body, db)) {
       return sendJSON(res, 401, { ok: false, message: 'Yetkisiz işlem.' });
     }
 
@@ -633,7 +656,7 @@ module.exports = async (req, res) => {
   // POST /admin/remove-player
   if (req.method === 'POST' && pathname === '/admin/remove-player') {
     const body = await parseBody(req);
-    if ((body.pin || '').trim() !== db.adminPin) {
+    if (!isAuthorizedAdmin(body, db)) {
       return sendJSON(res, 401, { ok: false, message: 'Yetkisiz işlem.' });
     }
     db.currentMatch.players = db.currentMatch.players.filter(p => p.id !== body.playerId);

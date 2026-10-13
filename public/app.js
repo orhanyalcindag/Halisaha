@@ -2,10 +2,15 @@
   // Application State
   let currentMatch = null;
   let validatedCode = '';
-  let adminPin = localStorage.getItem('halisaha_admin_pin') || '1234';
+  let adminUsername = localStorage.getItem('halisaha_admin_user') || 'Orhan';
+  let adminPassword = localStorage.getItem('halisaha_admin_pass') || '1905';
   let isAdminAuthenticated = false;
   let selectedForSwap = null; // { id, name, team }
   let pitchViewMode = 'full'; // 'full' | 'split'
+
+  function getAdminAuthPayload(extra = {}) {
+    return { username: adminUsername, password: adminPassword, ...extra };
+  }
 
   // DOM Elements
   const codeGateSection = document.getElementById('codeGateSection');
@@ -78,7 +83,8 @@
   const adminLoginView = document.getElementById('adminLoginView');
   const adminDashboardView = document.getElementById('adminDashboardView');
   const adminLoginForm = document.getElementById('adminLoginForm');
-  const adminPinInput = document.getElementById('adminPinInput');
+  const adminUsernameInput = document.getElementById('adminUsernameInput');
+  const adminPasswordInput = document.getElementById('adminPasswordInput');
   const adminLoginError = document.getElementById('adminLoginError');
   const adminCurrentCode = document.getElementById('adminCurrentCode');
   const adminInviteUrlInput = document.getElementById('adminInviteUrlInput');
@@ -604,7 +610,7 @@
       const res = await fetch('/api/admin/swap-players', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pin: adminPin, playerAId, playerBId })
+        body: JSON.stringify(getAdminAuthPayload({ playerAId, playerBId }))
       });
       const data = await res.json();
       if (res.ok && data.ok) {
@@ -774,7 +780,7 @@
       const res = await fetch('/api/admin/fill-demo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pin: adminPin })
+        body: JSON.stringify(getAdminAuthPayload())
       });
       const data = await res.json();
       if (res.ok && data.ok) {
@@ -797,7 +803,7 @@
       const res = await fetch('/api/admin/reshuffle', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pin: adminPin })
+        body: JSON.stringify(getAdminAuthPayload())
       });
       const data = await res.json();
       if (res.ok && data.ok) {
@@ -816,7 +822,7 @@
       const res = await fetch('/api/admin/remove-player', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pin: adminPin, playerId })
+        body: JSON.stringify(getAdminAuthPayload({ playerId }))
       });
       const data = await res.json();
       if (res.ok && data.ok) {
@@ -854,24 +860,27 @@
   adminLoginForm.addEventListener('submit', async e => {
     e.preventDefault();
     adminLoginError.classList.add('hidden');
-    const pin = adminPinInput.value.trim();
+    const username = adminUsernameInput.value.trim();
+    const password = adminPasswordInput.value.trim();
 
     try {
       const res = await fetch('/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pin })
+        body: JSON.stringify({ username, password })
       });
       const data = await res.json();
       if (!res.ok || !data.ok) {
-        adminLoginError.textContent = data.message || 'Hatalı PIN!';
+        adminLoginError.textContent = data.message || 'Kullanıcı adı veya şifre hatalı!';
         adminLoginError.classList.remove('hidden');
         return;
       }
 
-      adminPin = pin;
+      adminUsername = username;
+      adminPassword = password;
       isAdminAuthenticated = true;
-      localStorage.setItem('halisaha_admin_pin', pin);
+      localStorage.setItem('halisaha_admin_user', username);
+      localStorage.setItem('halisaha_admin_pass', password);
 
       // Automatically unlock the match room for the organizer too!
       validatedCode = data.match.code;
@@ -928,7 +937,7 @@
       const res = await fetch('/api/admin/clear-players', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pin: adminPin })
+        body: JSON.stringify(getAdminAuthPayload())
       });
       const data = await res.json();
       if (res.ok && data.ok) {
@@ -947,14 +956,13 @@
       const res = await fetch('/api/admin/new-week', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          pin: adminPin,
+        body: JSON.stringify(getAdminAuthPayload({
           weekTitle: adminWeekTitle.value,
           venue: adminVenue.value,
           matchDate: adminMatchDate.value,
           matchTime: adminMatchTime.value,
           customCode: adminCustomCode.value
-        })
+        }))
       });
       const data = await res.json();
       if (res.ok && data.ok) {
@@ -979,14 +987,13 @@
       const res = await fetch('/api/admin/update-info', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          pin: adminPin,
+        body: JSON.stringify(getAdminAuthPayload({
           weekTitle: adminWeekTitle.value,
           venue: adminVenue.value,
           matchDate: adminMatchDate.value,
           matchTime: adminMatchTime.value,
           code: adminCustomCode.value || undefined
-        })
+        }))
       });
       const data = await res.json();
       if (res.ok && data.ok) {

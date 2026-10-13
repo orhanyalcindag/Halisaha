@@ -512,24 +512,37 @@
         <button type="button" id="closeAdminModalBtn" class="modal-close-btn" aria-label="Kapat">✕</button>
       </div>
 
-      <!-- Admin PIN Login Step -->
+      <!-- Admin Login Step -->
       <div id="adminLoginView" class="modal-body">
         <p class="modal-desc">
-          Yeni hafta aktivasyon kodu oluşturmak, WhatsApp davet linkini almak veya oyuncuları yönetmek için Organizatör PIN kodunu girin.
+          Yeni hafta aktivasyon kodu oluşturmak, WhatsApp davet linkini almak veya kadroyu yönetmek için Organizatör girişi yapın.
         </p>
-        <div class="pin-hint-box">
-          🔑 <strong>Varsayılan Organizatör PIN:</strong> <code>1234</code>
-        </div>
         <form id="adminLoginForm" class="admin-login-form">
-          <input
-            type="password"
-            id="adminPinInput"
-            class="text-input"
-            placeholder="PIN Kodu (1234)"
-            value="1234"
-            required
-          />
-          <button type="submit" class="btn btn-primary">Panele Giriş Yap</button>
+          <div class="form-group">
+            <label for="adminUsernameInput">Kullanıcı Adı</label>
+            <input
+              type="text"
+              id="adminUsernameInput"
+              class="text-input"
+              placeholder="Kullanıcı Adı"
+              autocomplete="username"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="adminPasswordInput">Şifre</label>
+            <input
+              type="password"
+              id="adminPasswordInput"
+              class="text-input"
+              placeholder="Şifre"
+              autocomplete="current-password"
+              required
+            />
+          </div>
+          <button type="submit" class="btn btn-primary btn-block btn-lg">
+            🔒 Panele Giriş Yap
+          </button>
         </form>
         <p id="adminLoginError" class="form-error hidden"></p>
       </div>

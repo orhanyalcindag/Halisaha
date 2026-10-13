@@ -34,7 +34,8 @@ function getDefaultMatchDate() {
 // Initial database state
 function createInitialState() {
   return {
-    adminPin: '1234',
+    adminUsername: 'Orhan',
+    adminPassword: '1905',
     currentMatch: {
       id: crypto.randomUUID(),
       weekTitle: 'Haftalık Halısaha Maçı',
@@ -55,7 +56,11 @@ function loadDB() {
   try {
     if (fs.existsSync(DB_FILE)) {
       const raw = fs.readFileSync(DB_FILE, 'utf8');
-      return JSON.parse(raw);
+      const data = JSON.parse(raw);
+      // Ensure credentials are set to Orhan / 1905
+      data.adminUsername = 'Orhan';
+      data.adminPassword = '1905';
+      return data;
     }
   } catch (err) {
     console.error('Veritabanı okuma hatası, varsayılan oluşturuluyor:', err);
@@ -70,6 +75,18 @@ function saveDB(data) {
 }
 
 let db = loadDB();
+
+function isAuthorizedAdmin(body) {
+  if (!body) return false;
+  const username = String(body.username || '').trim();
+  const password = String(body.password || body.pin || '').trim();
+  const expectedUser = (db.adminUsername || 'Orhan').toLowerCase();
+  const expectedPass = String(db.adminPassword || '1905');
+  if (username) {
+    return username.toLowerCase() === expectedUser && password === expectedPass;
+  }
+  return password === expectedPass;
+}
 
 // SSE (Server-Sent Events) clients for real-time updates
 const sseClients = new Set();
@@ -609,9 +626,13 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'POST' && pathname === '/api/admin/login') {
     try {
       const body = await parseBody(req);
-      const pin = (body.pin || '').trim();
-      if (pin !== db.adminPin) {
-        return sendJSON(res, 401, { ok: false, message: 'Yönetici PIN kodu hatalı! (Varsayılan PIN: 1234)' });
+      const username = String(body.username || '').trim();
+      const password = String(body.password || body.pin || '').trim();
+      const expectedUser = (db.adminUsername || 'Orhan').toLowerCase();
+      const expectedPass = String(db.adminPassword || '1905');
+
+      if (username.toLowerCase() !== expectedUser || password !== expectedPass) {
+        return sendJSON(res, 401, { ok: false, message: 'Kullanıcı adı veya şifre hatalı!' });
       }
       return sendJSON(res, 200, {
         ok: true,
@@ -627,7 +648,7 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'POST' && pathname === '/api/admin/new-week') {
     try {
       const body = await parseBody(req);
-      if ((body.pin || '').trim() !== db.adminPin) {
+      if (!isAuthorizedAdmin(body)) {
         return sendJSON(res, 401, { ok: false, message: 'Yetkisiz işlem (PIN hatalı).' });
       }
 
@@ -673,7 +694,7 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'POST' && pathname === '/api/admin/update-info') {
     try {
       const body = await parseBody(req);
-      if ((body.pin || '').trim() !== db.adminPin) {
+      if (!isAuthorizedAdmin(body)) {
         return sendJSON(res, 401, { ok: false, message: 'Yetkisiz işlem.' });
       }
 
@@ -702,7 +723,7 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'POST' && pathname === '/api/admin/remove-player') {
     try {
       const body = await parseBody(req);
-      if ((body.pin || '').trim() !== db.adminPin) {
+      if (!isAuthorizedAdmin(body)) {
         return sendJSON(res, 401, { ok: false, message: 'Yetkisiz işlem.' });
       }
 
@@ -730,7 +751,7 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'POST' && pathname === '/api/admin/reshuffle') {
     try {
       const body = await parseBody(req);
-      if ((body.pin || '').trim() !== db.adminPin) {
+      if (!isAuthorizedAdmin(body)) {
         return sendJSON(res, 401, { ok: false, message: 'Yetkisiz işlem.' });
       }
 
@@ -758,7 +779,7 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'POST' && pathname === '/api/admin/swap-players') {
     try {
       const body = await parseBody(req);
-      if ((body.pin || '').trim() !== db.adminPin) {
+      if (!isAuthorizedAdmin(body)) {
         return sendJSON(res, 401, { ok: false, message: 'Yetkisiz işlem.' });
       }
       if (!db.currentMatch.teams) {
@@ -816,7 +837,7 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'POST' && pathname === '/api/admin/fill-demo') {
     try {
       const body = await parseBody(req);
-      if ((body.pin || '').trim() !== db.adminPin) {
+      if (!isAuthorizedAdmin(body)) {
         return sendJSON(res, 401, { ok: false, message: 'Yetkisiz işlem.' });
       }
 
@@ -879,7 +900,7 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'POST' && pathname === '/api/admin/clear-players') {
     try {
       const body = await parseBody(req);
-      if ((body.pin || '').trim() !== db.adminPin) {
+      if (!isAuthorizedAdmin(body)) {
         return sendJSON(res, 401, { ok: false, message: 'Yetkisiz işlem.' });
       }
       db.currentMatch.players = [];
@@ -927,6 +948,6 @@ server.listen(PORT, () => {
   console.log(`🌐 Adres: http://localhost:${PORT}`);
   console.log(`🔑 Bu Haftanın Aktivasyon Kodu: ${db.currentMatch.code}`);
   console.log(`🔗 WhatsApp Davet Linki: http://localhost:${PORT}/?kod=${db.currentMatch.code}`);
-  console.log(`🛡️  Organizatör PIN Kodu: ${db.adminPin}`);
+  console.log(`🛡️  Organizatör Girişi: Kullanıcı: ${db.adminUsername} | Şifre: ${db.adminPassword}`);
   console.log(`====================================================`);
 });
